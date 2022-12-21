@@ -1,41 +1,111 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_actual/common/const/data.dart';
 import 'package:flutter_actual/layout/default_layout.dart';
+import 'package:flutter_actual/model/restaurant_detail_model.dart';
 import 'package:flutter_actual/model/restaurant_model.dart';
 import 'package:flutter_actual/product/component/product_card.dart';
 import 'package:flutter_actual/restaurant/component/restaurant_card.dart';
 
 class RestaurantDetailScreen extends StatelessWidget {
-  const RestaurantDetailScreen({Key? key}) : super(key: key);
+  final String id;
+
+  const RestaurantDetailScreen({
+    required this.id,
+    Key? key,
+  }) : super(key: key);
+
+  Future<Map<String, dynamic>> getRestaurantDetail() async {
+    final dio = Dio();
+
+    final accessToken = await storage.read(key: ACCESS_TOKEN_KEY);
+
+    final res = await dio.get(
+      'http://${ip}:3000/restaurant/${id}',
+      options: Options(
+        headers: {
+          'Authorization': 'Bearer ${accessToken}',
+        },
+      ),
+    );
+
+    return res.data;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final Map<String, dynamic> item = {
-      "id": "4729bd37-8927-5150-b036-395da7e7bb42",
-      "name": "신선 코팩 스시",
-      "thumbUrl": "/img/스시/중간모듬스시.jpg",
-      "tags": ["스시", "일식", "연어"],
-      "priceRange": "expensive",
-      "ratings": 4.52,
-      "ratingsCount": 100,
-      "deliveryTime": 30,
-      "deliveryFee": 0
-    };
+    print('✅ $id');
 
-    return DefaultLayout(
-      title: '불타는 떡볶이',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          RestaurantCard.fromModel(
-            model: RestaurantModel.fromJson(json: item),
-            isDetail: true,
-            detail: '안녕하세요.\n테스트 중입니다.',
+    return FutureBuilder(
+      future: getRestaurantDetail(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+
+        final data = RestaurantDetailModel.fromJson(json: snapshot.data!);
+
+        return DefaultLayout(
+          title: data.name,
+          // 커스텀 스크롤뷰
+          child: CustomScrollView(
+            slivers: [
+              renderTop(model: data),
+              renderLable(),
+              renderProducts(products: data.products),
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            child: ProductCard(),
+        );
+      },
+    );
+  }
+
+  renderTop({
+    required RestaurantDetailModel model,
+  }) {
+    // Sliver 위젯이 아닌경우 SliverToBoxAdapter 를 감싸준다.
+    return SliverToBoxAdapter(
+      child: RestaurantCard.fromModel(
+        model: model,
+        isDetail: true,
+      ),
+    );
+  }
+
+  renderProducts({required List<RestaurantProductModel> products}) {
+    return SliverPadding(
+      padding: EdgeInsets.symmetric(
+        horizontal: 10,
+      ),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            final model = products[index];
+            return Padding(
+              padding: const EdgeInsets.only(top: 10.0),
+              child: ProductCard.fromModel(model: model),
+            );
+          },
+          // 리스트 갯수
+          childCount: products.length,
+        ),
+      ),
+    );
+  }
+
+  renderLable() {
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      sliver: SliverToBoxAdapter(
+        child: Text(
+          '메뉴',
+          style: TextStyle(
+            fontWeight: FontWeight.w500,
+            fontSize: 20,
           ),
-        ],
+        ),
       ),
     );
   }

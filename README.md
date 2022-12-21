@@ -293,5 +293,33 @@ SizedBox(
 ),
 ```
 
-## [flutter] Row() 컴포넌트 안에 자식들 높이 맞추기
+## [flutter] 서로 다른 리스트 스크롤 만들기 / CustomScrollView
 
+```dart
+  // 커스텀 스크롤뷰
+  child: CustomScrollView(
+    slivers: [
+      // Sliver 위젯이 아닌경우 SliverToBoxAdapter 를 감싸준다.
+      SliverToBoxAdapter(
+        child: RestaurantCard.fromModel(
+          model: RestaurantModel.fromJson(json: item),
+          isDetail: true,
+          detail: '안녕하세요.\n테스트 중입니다.',
+        ),
+      ),
+      // SliverList 위젯
+      SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: ProductCard(),
+            );
+          },
+          // 리스트 갯수
+          childCount: 10,
+        )
+      )
+    ],
+  ),
+```

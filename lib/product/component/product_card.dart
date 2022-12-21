@@ -1,9 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_actual/common/const/colors.dart';
 import 'package:flutter_actual/common/const/data.dart';
+import 'package:flutter_actual/model/restaurant_detail_model.dart';
 
 class ProductCard extends StatelessWidget {
-  const ProductCard({Key? key}) : super(key: key);
+  final Image image;
+  final String name;
+  final String detail;
+  final int price;
+
+  const ProductCard({
+    required this.image,
+    required this.name,
+    required this.detail,
+    required this.price,
+    Key? key,
+  }) : super(key: key);
+
+  factory ProductCard.fromModel({
+    required RestaurantProductModel model,
+  }) {
+    return ProductCard(
+      image: Image.network(
+        model.imgUrl,
+        fit: BoxFit.cover,
+      ),
+      name: model.name,
+      detail: model.detail,
+      price: model.price,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,10 +41,7 @@ class ProductCard extends StatelessWidget {
             height: 110,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                'http://${ip}:3000/img/스시/중간모듬스시.jpg',
-                fit: BoxFit.cover,
-              ),
+              child: image,
             ),
           ),
           SizedBox(
@@ -30,33 +53,34 @@ class ProductCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  '쓰시',
+                  name,
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
-                    fontSize: 22,
+                    fontSize: 18,
                   ),
                 ),
                 // SizedBox(
                 //   height: 5,
                 // ),
                 Text(
-                  '쓰시 전통의 정석 입니다.쓰시 전통의 정석 입니다.쓰시 전통의 정석 입니다.쓰시 전통의 정석 입니다.쓰시 전통의 정석 입니다.쓰시 전통의 정석 입니다.쓰시 전통의 정석 입니다.',
+                  detail,
                   overflow: TextOverflow.ellipsis,
                   maxLines: 2,
                   style: TextStyle(
                     color: BODY_TEXT_COLOR,
+                    fontSize: 14,
                   ),
                 ),
                 // SizedBox(
                 //   height: 10,
                 // ),
                 Text(
-                  '₩ 1,000',
+                  '₩ ${price}',
                   textAlign: TextAlign.right,
                   style: TextStyle(
-                    color: PRIMARY_COLOR,
-                    fontWeight: FontWeight.w700,
-                  ),
+                      color: PRIMARY_COLOR,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16),
                 ),
               ],
             ),
