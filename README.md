@@ -323,3 +323,79 @@ SizedBox(
     ],
   ),
 ```
+
+## [flutter] json_annotation 모델링 자동화
+
+
+### 설치
+
+- 설치 example: https://github.com/google/json_serializable.dart/tree/master/example
+
+```js
+dependencies:
+  json_annotation: ^4.7.0
+
+dev_dependencies:
+  build_runner: ^2.0.0
+  json_serializable: ^6.0.0
+```
+
+### 사용법
+
+- 모델을 생성하고 싶은 클래스위에  `@JsonSerializable()` 를 붙여준다.
+
+```dart
+@JsonSerializable()
+class RestaurantModel {
+  // id
+  final String id;
+  // 이름
+  final String name;
+  // 이미지
+```
+
+- `part 'restaurant_model.g.dart';` 를 선언해준다
+- `flutter pub run build_runner build` 를 실행한다.
+
+### 중간에 데이터 전처리
+
+- 전처리할 멤버변수 앞에  `@JsonKey()` 를 붙여서 전처리 세팅을 한다.
+
+```dart
+@JsonSerializable()
+class RestaurantModel {
+  // id
+  final String id;
+  // 이름
+  final String name;
+  // 이미지
+  @JsonKey(
+    fromJson: pathToUrl,
+  )
+  final String thumbUrl;
+  // 태그
+  final List<String> tags;
+  // 가격 등급
+  final RestaurantPriceRange priceRange;
+  // 평균 평점
+  final double ratings;
+  // 평점 갯수
+  final int ratingsCount;
+  // 배송 시간
+  final int deliveryTime;
+  // 배송 비용
+  final int deliveryFee;
+
+  //  썸네일 전처리
+  static pathToUrl(String value) {
+    return 'http://${ip}:3000${value}';
+  }
+```
+
+- fromJson 메소드를 다시 재정의 한다.
+- 꼭 `포지셔널 파라미터`로 변경
+
+```dart
+  factory RestaurantModel.fromJson(Map<String, dynamic> json) =>
+      _$RestaurantModelFromJson(json);
+```

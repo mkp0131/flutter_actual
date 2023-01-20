@@ -34,18 +34,18 @@ class RestaurantDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('✅ $id');
-
     return FutureBuilder(
       future: getRestaurantDetail(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return Center(
-            child: CircularProgressIndicator(),
+          return Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
           );
         }
 
-        final data = RestaurantDetailModel.fromJson(json: snapshot.data!);
+        final data = RestaurantDetailModel.fromJson(snapshot.data!);
 
         return DefaultLayout(
           title: data.name,

@@ -35,6 +35,17 @@ class _SplashScreenState extends State<SplashScreen> {
 
     final dio = Dio();
 
+    // 리플레시 토큰이 없다면 return 임시로 추가함
+    if (refreshToken == null) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (context) => LoginScreen(),
+        ),
+        (route) => false,
+      );
+      return;
+    }
+
     try {
       // 리플레쉬 토큰으로 새로운 토큰을 발급 요청
       final response = await dio.post(
