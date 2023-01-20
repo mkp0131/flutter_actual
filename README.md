@@ -399,3 +399,5 @@ class RestaurantModel {
   factory RestaurantModel.fromJson(Map<String, dynamic> json) =>
       _$RestaurantModelFromJson(json);
 ```
+
+# 깃 테스트 입니다.
