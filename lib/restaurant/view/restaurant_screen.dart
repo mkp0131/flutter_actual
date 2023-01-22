@@ -3,28 +3,27 @@ import 'dart:math';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_actual/common/const/data.dart';
+import 'package:flutter_actual/dio/dio.dart';
 import 'package:flutter_actual/model/restaurant_model.dart';
+import 'package:flutter_actual/repository/restaurant_repository.dart';
 import 'package:flutter_actual/restaurant/component/restaurant_card.dart';
 import 'package:flutter_actual/restaurant/view/restaurant_detail_screen.dart';
 
 class RestaurantScreen extends StatelessWidget {
   const RestaurantScreen({Key? key}) : super(key: key);
 
-  Future<List> paginateRestaurant() async {
+  Future<List<RestaurantModel>> paginateRestaurant() async {
     final dio = Dio();
 
-    final accessToken = await storage.read(key: ACCESS_TOKEN_KEY);
-
-    final res = await Dio().get(
-      'http://${ip}:3000/restaurant',
-      options: Options(
-        headers: {
-          'Authorization': 'Bearer ${accessToken}',
-        },
-      ),
+    dio.interceptors.add(
+      CustomInterceptor(storage: storage),
     );
 
-    return res.data['data'];
+    final resq =
+        await RestaurantRepository(dio, baseUrl: 'http://$ip:3000/restaurant')
+            .paginate();
+
+    return resq.data;
   }
 
   @override
@@ -32,7 +31,7 @@ class RestaurantScreen extends StatelessWidget {
     return Container(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: FutureBuilder<List>(
+        child: FutureBuilder<List<RestaurantModel>>(
             future: paginateRestaurant(),
             builder: (context, snapshot) {
               // print('⛔️ error ${snapshot.error}');
@@ -45,9 +44,7 @@ class RestaurantScreen extends StatelessWidget {
 
               return ListView.separated(
                 itemBuilder: (context, index) {
-                  final item = snapshot.data![index];
-
-                  final pItem = RestaurantModel.fromJson(item);
+                  final pItem = snapshot.data![index];
 
                   return GestureDetector(
                     onTap: () {

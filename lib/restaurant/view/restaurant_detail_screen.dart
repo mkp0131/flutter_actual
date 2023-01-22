@@ -1,10 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_actual/common/const/data.dart';
+import 'package:flutter_actual/dio/dio.dart';
 import 'package:flutter_actual/layout/default_layout.dart';
 import 'package:flutter_actual/model/restaurant_detail_model.dart';
 import 'package:flutter_actual/model/restaurant_model.dart';
 import 'package:flutter_actual/product/component/product_card.dart';
+import 'package:flutter_actual/repository/restaurant_repository.dart';
 import 'package:flutter_actual/restaurant/component/restaurant_card.dart';
 
 class RestaurantDetailScreen extends StatelessWidget {
@@ -15,28 +17,29 @@ class RestaurantDetailScreen extends StatelessWidget {
     Key? key,
   }) : super(key: key);
 
-  Future<Map<String, dynamic>> getRestaurantDetail() async {
+  Future<RestaurantDetailModel> getRestaurantDetail() async {
     final dio = Dio();
 
-    final accessToken = await storage.read(key: ACCESS_TOKEN_KEY);
+    // Dio 인터셉트 추가
+    dio.interceptors.add(CustomInterceptor(storage: storage));
 
-    final res = await dio.get(
-      'http://${ip}:3000/restaurant/${id}',
-      options: Options(
-        headers: {
-          'Authorization': 'Bearer ${accessToken}',
-        },
-      ),
-    );
+    final repository =
+        RestaurantRepository(dio, baseUrl: 'http://${ip}:3000/restaurant');
 
-    return res.data;
+    return repository.getRestaurantDetail(id: id);
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
+    return FutureBuilder<RestaurantDetailModel>(
       future: getRestaurantDetail(),
-      builder: (context, snapshot) {
+      builder: (_, AsyncSnapshot<RestaurantDetailModel> snapshot) {
+        // if (snapshot.hasError) {
+        //   return Scaffold(
+        //     body: Text(snapshot.error.toString()),
+        //   );
+        // }
+
         if (!snapshot.hasData) {
           return Scaffold(
             body: Center(
@@ -45,16 +48,14 @@ class RestaurantDetailScreen extends StatelessWidget {
           );
         }
 
-        final data = RestaurantDetailModel.fromJson(snapshot.data!);
-
         return DefaultLayout(
-          title: data.name,
+          title: snapshot.data!.name,
           // 커스텀 스크롤뷰
           child: CustomScrollView(
             slivers: [
-              renderTop(model: data),
+              renderTop(model: snapshot.data!),
               renderLable(),
-              renderProducts(products: data.products),
+              renderProducts(products: snapshot.data!.products),
             ],
           ),
         );
